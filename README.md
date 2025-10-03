@@ -53,7 +53,7 @@ Welche Einträge sind kritisch (Kurz)
 
 Warum kritisch? Die Integrität dieser Verzeichnisse bestimmt, ob das System startet, wie es sich authentifiziert und welche Spuren (Logs) vorhanden sind.
 
-Interessante Bereiche für Blue-Team (🛡️)
+## Interessante Bereiche für Blue-Team (🛡️)
 
 /var/log — Hauptquelle für System-/Anwendungslogs (syslog, auth.log, nginx, systemd). Unverzichtbar für Incident Response.
 
@@ -67,7 +67,7 @@ Interessante Bereiche für Blue-Team (🛡️)
 
 Swap (swap.img) — Analyse mit Tools kann sensiblen RAM-Inhalt offenbaren (Credentials, Keys).
 
-Interessante Bereiche für Red-Team (🕵️)
+## Interessante Bereiche für Red-Team (🕵️)
 
 /etc/ssh & ~/.ssh — SSH-Konfiguration und private Keys (leichte Persistence/Seitwärtsbewegung).
 
@@ -79,7 +79,7 @@ Cron-Jobs (/etc/cron.*, user-crontabs) — wiederkehrende Persistenz.
 
 Log-Directorys (/var/log) — Log-Wiping / Tampering für Eraser-Techniken (Achtung: Forensische Indikatoren bleiben).
 
-Schnelle Befehle für Audit & Forensik
+## Schnelle Befehle für Audit & Forensik
 
 Letzte Änderungen in /etc prüfen:
 
@@ -94,7 +94,7 @@ Offene Sockets & Prozesse (laufzeit):
 sudo ss -tulpen
 ps aux --sort=-%mem | head -n 20
 
-Suche nach privaten SSH-Keys (wichtiger auf forensischen Checks):
+### Suche nach privaten SSH-Keys (wichtiger auf forensischen Checks):
 
 sudo grep -R "BEGIN RSA PRIVATE KEY" /home /root /etc 2>/dev/null
 
