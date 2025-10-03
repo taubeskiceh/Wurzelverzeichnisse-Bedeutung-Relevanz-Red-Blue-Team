@@ -98,10 +98,11 @@ ps aux --sort=-%mem | head -n 20
 
 sudo grep -R "BEGIN RSA PRIVATE KEY" /home /root /etc 2>/dev/null
 
-Swap (falls vorhanden) zur Extraktion (nur mit Zustimmung und Vorsicht):
+### Swap (falls vorhanden) zur Extraktion (nur mit Zustimmung und Vorsicht):
 
 sudo strings /swap.img | less
-Kurze Hardening- & Monitoring-Reminder
+
+### Kurze Hardening- & Monitoring-Reminder
 
 Sichere /etc/ssh/sshd_config: PasswordAuthentication no; PermitRootLogin no (oder stark eingeschränkt).
 
