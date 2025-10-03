@@ -13,8 +13,10 @@ Legende (Schnell)
 
 🕵️ Red-Team relevant — gute Orte, um Persistenz, Spuren, oder Datensuche zu prüfen.
 
-Tabelle: Verzeichnis — Kurzbeschreibung — Markierung
-Verzeichnis	Kurzbeschreibung	Markierung / Hinweise
+# Tabelle: Verzeichnis — Kurzbeschreibung — Markierung
+
+## Verzeichnis	Kurzbeschreibung	Markierung / Hinweise
+
 /	Root-Wurzel des Dateisystems	🟠 Systemkritisch (Basis)
 . / ..	Aktuelles / übergeordnetes Verzeichnis (Navigation)	🟢
 bin -> usr/bin	Essentielle User-Binaries (ls, bash)	🟠 (Symlink auf /usr/bin)
