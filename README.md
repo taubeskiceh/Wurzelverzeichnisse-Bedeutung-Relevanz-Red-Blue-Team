@@ -1,113 +1,160 @@
-# Wurzelverzeichnisse-Bedeutung-Relevanz-f-r-Red-Blue-Team
-Ziel: Schnelle Referenz für System-Admins und Sicherheits-Teams — erklärt die wichtigsten Root-Verzeichnisse, markiert kritische Einträge und nennt spezielle Bereiche, die für Red- und Blue-Team-Aktivitäten besonders interessant sind.
+# 🧭 Wurzelverzeichnisse – Bedeutung & Relevanz für Red- und Blue-Team
 
-Legende (Schnell)
+**Ziel:**  
+Schnelle Referenz für **System-Administratoren**, **Blue-Teams (Defense)** und **Red-Teams (Offense)**.  
+Dieses Dokument erklärt die wichtigsten Root-Verzeichnisse eines Linux-Systems, markiert **kritische Punkte** und zeigt, welche Bereiche für **Forensik, Monitoring oder Angriffe** besonders relevant sind.
 
-🔴 Kritisch — Änderungen können Systemverfügbarkeit oder Sicherheit beeinträchtigen (Boot, Auth, Konfigurationen).
+---
 
-🟠 Wichtig — Betriebssystem-relevant; falsche Änderungen führen zu Problemen.
+## 📚 Inhaltsverzeichnis
 
-🟢 Normal / Sicher anschauen — meist nutzerbezogene oder temporäre Bereiche.
+1. [Legende](#-legende)
+2. [Hauptverzeichnisse – Übersicht & Bewertung](#-hauptverzeichnisse--übersicht--bewertung)
+3. [Kritische Verzeichnisse – Kurzüberblick](#️-kritische-verzeichnisse--kurzüberblick)
+4. [Interessante Bereiche für Blue-Team](#️-interessante-bereiche-für-blue-team)
+5. [Interessante Bereiche für Red-Team](#-interessante-bereiche-für-red-team)
+6. [Schnelle Audit- & Forensik-Befehle](#-schnelle-audit--forensik-befehle)
+7. [Hardening & Monitoring Reminder](#-hardening--monitoring-reminder)
+8. [Tools & Referenzen](#-weiterführende-tools--referenzen)
+9. [Kurzfazit](#-kurzfazit)
 
-🛡️ Blue-Team relevant — gute Orte zum Monitoring, Forensik, Härtung.
+---
 
-🕵️ Red-Team relevant — gute Orte, um Persistenz, Spuren, oder Datensuche zu prüfen.
+## 🔖 Legende
 
-# Tabelle: Verzeichnis — Kurzbeschreibung — Markierung
+| Symbol | Bedeutung |
+|:------:|------------|
+| 🔴 | **Kritisch** – Änderungen können Systemverfügbarkeit oder Sicherheit beeinträchtigen (Boot, Auth, Konfigurationen). |
+| 🟠 | **Wichtig** – Betriebssystemrelevant; falsche Änderungen führen zu Fehlverhalten. |
+| 🟢 | **Normal / Sicher** – meist nutzerbezogene oder temporäre Bereiche. |
+| 🛡️ | **Blue-Team-Relevanz** – Orte für Monitoring, Forensik, Härtung. |
+| 🕵️ | **Red-Team-Relevanz** – Orte für Persistenz, Spuren oder Datensuche. |
 
-## Verzeichnis	Kurzbeschreibung	Markierung / Hinweise
+---
 
-/	Root-Wurzel des Dateisystems	🟠 Systemkritisch (Basis)
-. / ..	Aktuelles / übergeordnetes Verzeichnis (Navigation)	🟢
-bin -> usr/bin	Essentielle User-Binaries (ls, bash)	🟠 (Symlink auf /usr/bin)
-boot	Kernel, initramfs, Bootloader-Konfigs	🔴 (kritisch) — NICHT unbedacht ändern
-cdrom	Mountpoint für CD/DVD	🟢 (selten genutzt)
-dev	Gerätedateien (Kernel-managed)	🟠 — wichtig, aber dynamisch
-etc	Systemweite Konfigurationen (/etc/passwd, sshd_config)	🔴 (kritisch) — zentral für Härtung & Forensik
-home	Nutzerverzeichnisse (/home/<user>)	🟢 — Blue-Team: Nutzerdaten, Logs; Red-Team: Suche nach ssh-keys/passwords
-lib, lib64	Shared-Libraries	🟠 — Abhängigkeiten; kompromittierte Libs = gefährlich
-lost+found	fsck-Wiederherstellungsbereich	🟢 (nur nach fsck relevant)
-media	Automount für Wechselmedien	🟢 — Blue-Team: USB-Forensik
-mnt	Temporäre Mounts für Admins	🟢 — gut für manuelle Tests
-opt	Optionale/Proprietäre Software	🟠 — 3rd-party-Apps, Aufmerksamkeit nötig
-proc	Pseudo-FS: Prozess- und Kernel-Info	🟠 — nur lesbar, live-System-Info
-root	Home-Verzeichnis von root	🔴 — sensible Daten, SSH-Keys, Scripts
-run	Laufzeitdaten (PIDs, Sockets)	🟠 — Blue-Team: Sockets, PID-Files überwachen
-sbin -> usr/sbin	System-Binaries (Admin-Tools)	🟠 — nur root-Tools
-snap	Snap-Anwendungen & Mounts	🟠 — Snap-bezogene Angriffsfläche möglich
-srv	Servicedaten (z. B. Web-/FTP-Daten)	🟠 — Blue/Red: Angriffs-/Daten-Location
-swap.img	Swap-Datei (Auslagerung)	🟠 — enthält potentiell sensitive Klartext-Daten im RAM-Fallback
-sys	Pseudo-FS: Kernel/Hardware-Info	🟠 — Live-Hardware-Ansicht
-tmp	Temporäre Dateien (Sticky-Bit gesetzt)	🟢 — Blue-Team: Temp-Forensik; Red-Team: temporäre Persistenz versuchen
-usr	Userland: /usr/bin, /usr/lib, /usr/share	🟠 — größter Programmsatz; Prüfpunkte für Integrität
-var	Variable Daten: Logs, Caches, Mail, DBs	🔴 (kritisch) — wichtigste Quelle für Logs & Forensik
-Welche Einträge sind kritisch (Kurz)
+## 📁 Hauptverzeichnisse – Übersicht & Bewertung
 
-🔴 /boot: Kernel & Bootloader — Änderung kann System unbootbar machen.
+| Verzeichnis | Kurzbeschreibung | Bewertung / Hinweise |
+|:-------------|:----------------|:---------------------|
+| `/` | Root-Wurzel des Dateisystems | 🟠 Systemkritisch (Basis) |
+| `.` / `..` | Aktuelles / übergeordnetes Verzeichnis | 🟢 Navigation |
+| `/bin → /usr/bin` | Essentielle User-Binaries (`ls`, `bash`) | 🟠 Symlink auf `/usr/bin` |
+| `/boot` | Kernel, Initramfs, Bootloader-Konfigs | 🔴 **Kritisch – NICHT unbedacht ändern** |
+| `/cdrom` | Mountpoint für CD/DVD | 🟢 Selten genutzt |
+| `/dev` | Gerätedateien (Kernel-managed) | 🟠 Wichtig, dynamisch |
+| `/etc` | Systemweite Konfigurationen (`passwd`, `sshd_config`) | 🔴 **Zentral für Härtung & Forensik** 🛡️ |
+| `/home` | Nutzerverzeichnisse (`/home/<user>`) | 🟢 **🛡️ Blue:** Nutzerdaten & Logs — **🕵️ Red:** SSH-Keys/Passwords |
+| `/lib`, `/lib64` | Shared Libraries | 🟠 Kompromittierte Libs = gefährlich |
+| `/lost+found` | Wiederherstellungsbereich nach fsck | 🟢 Nur bei Fehlern relevant |
+| `/media` | Automount für Wechselmedien | 🟢 🛡️ USB-Forensik |
+| `/mnt` | Temporäre Mounts (manuell) | 🟢 Gut für Tests |
+| `/opt` | Optionale / Proprietäre Software | 🟠 🕵️ Häufige 3rd-party-Angriffsfläche |
+| `/proc` | Pseudo-FS: Prozess-/Kernel-Info | 🟠 Laufzeitinformationen |
+| `/root` | Home-Verzeichnis von Root | 🔴 **Sensible Daten, SSH-Keys, Scripts** |
+| `/run` | Laufzeitdaten (PIDs, Sockets) | 🟠 🛡️ Überwache PID-Files & Sockets |
+| `/sbin → /usr/sbin` | System-Binaries (Admin-Tools) | 🟠 Root-only Tools |
+| `/snap` | Snap-Anwendungen & Mounts | 🟠 Angriffsfläche möglich |
+| `/srv` | Servicedaten (z. B. Web-/FTP-Daten) | 🟠 🛡️🕵️ Datenquelle & Angriffsfläche |
+| `/swap.img` | Swap-Datei | 🟠 🛡️ Sensible RAM-Reste möglich |
+| `/sys` | Kernel/Hardware-Info | 🟠 Laufzeit-Hardware-Daten |
+| `/tmp` | Temporäre Dateien | 🟢 🛡️🕵️ **Forensik / Temporäre Persistenz** |
+| `/usr` | Userland: Programme & Libraries | 🟠 Prüfpunkte für Integrität |
+| `/var` | Logs, Caches, DBs, Mails | 🔴 **Kritisch – Forensik-Hauptquelle** 🛡️ |
 
-🔴 /etc: zentrale Systemkonfiguration (Dienste, Auth, Netz).
+---
 
-🔴 /var: Logs und Laufzeitdaten — für Forensik unverzichtbar.
+## ⚠️ Kritische Verzeichnisse – Kurzüberblick
 
-🔴 /root: root-homedir (SSH-Keys, sensible Scripts).
+| Verzeichnis | Grund der Kritikalität |
+|:-------------|:----------------------|
+| `/boot` | Kernel & Bootloader – Änderung = System unbootbar |
+| `/etc` | Systemkonfigurationen (Auth, Dienste, Netz) |
+| `/var` | Logs & Laufzeitdaten – Forensik & Spuren |
+| `/root` | Root-Homedir – SSH-Keys, Scripte, Credentials |
 
-Warum kritisch? Die Integrität dieser Verzeichnisse bestimmt, ob das System startet, wie es sich authentifiziert und welche Spuren (Logs) vorhanden sind.
+> 🧠 **Hinweis:**  
+> Die Integrität dieser Verzeichnisse bestimmt, ob das System startet, sich authentifiziert und Spuren nachvollziehbar bleiben.
 
-## Interessante Bereiche für Blue-Team (🛡️)
+---
 
-/var/log — Hauptquelle für System-/Anwendungslogs (syslog, auth.log, nginx, systemd). Unverzichtbar für Incident Response.
+## 🛡️ Interessante Bereiche für Blue-Team
 
-/etc — Härtung: SSH (/etc/ssh/), sudoers, PAM, services. Prüfe Berechtigungen, unerwartete Änderungen.
+| Bereich | Fokus / Empfehlung |
+|:---------|:-------------------|
+| `/var/log` | **Zentrale Logquelle:** `syslog`, `auth.log`, `nginx`, `systemd`. Unverzichtbar für Incident Response. |
+| `/etc` | **Härtung:** SSH (`/etc/ssh/`), `sudoers`, PAM, Dienste-Konfigs. Berechtigungen & Änderungen prüfen. |
+| `/run`, `/proc`, `/sys` | Laufzeitchecks, Prozesse, Ports, DLL-Injektionen, ungewöhnliche PIDs. |
+| `/home` | Nutzerbezogene Persistenz: `.ssh`, Crontabs, gespeicherte Credentials. |
+| `/tmp`, `/var/tmp` | Temporäre Dateien – prüfe SetUID & ungewöhnliche Binaries. |
+| `/swap.img` | Mögliche RAM-Spuren (Credentials, Keys) → **nur mit Zustimmung analysieren.** |
 
-/run, /proc, /sys — Laufzeitchecks, aktive Sockets, Prozesse (z. B. offene Ports, DLL-Injektionen, ungewöhnliche PIDs).
+---
 
-/home — Persistence-Mechanismen/konfigurierte SSH-Keys, user-spezifische Crontabs und gespeicherte Anmeldeinformationen.
+## 🕵️ Interessante Bereiche für Red-Team
 
-/tmp, /var/tmp — temporäre Dateien als Angriffs-/Persistenzvektor; prüfe setuid/unnötige ausführbare Dateien.
+| Bereich | Zweck / Nutzen |
+|:---------|:---------------|
+| `/etc/ssh`, `~/.ssh` | SSH-Konfiguration, Keys – **Persistence / Lateral Movement** |
+| `/opt`, `/usr/local`, `/srv` | 3rd-party-Software, oft schwach gesichert oder SUID-Binaries |
+| `/tmp` & ähnliche Pfade | Temporäre **Backdoors / Loader / Payloads** |
+| `Cron-Jobs` (`/etc/cron.*`, User-Crontabs) | **Wiederkehrende Persistenz** |
+| `/var/log` | **Log Manipulation / Erasure** – Spurenverwischung |
 
-Swap (swap.img) — Analyse mit Tools kann sensiblen RAM-Inhalt offenbaren (Credentials, Keys).
+---
 
-## Interessante Bereiche für Red-Team (🕵️)
+## 🧩 Schnelle Audit- & Forensik-Befehle
 
-/etc/ssh & ~/.ssh — SSH-Konfiguration und private Keys (leichte Persistence/Seitwärtsbewegung).
-
-/opt, /usr/local, /srv — 3rd-party Installationen: häufig ungetestete Dienste oder SUID/ungeschützte Binaries.
-
-/tmp & mkdir-basierte Temporärpfade — einfache Stellen, um Backdoors temporär abzulegen.
-
-Cron-Jobs (/etc/cron.*, user-crontabs) — wiederkehrende Persistenz.
-
-Log-Directorys (/var/log) — Log-Wiping / Tampering für Eraser-Techniken (Achtung: Forensische Indikatoren bleiben).
-
-## Schnelle Befehle für Audit & Forensik
-
-Letzte Änderungen in /etc prüfen:
-
+### 🔍 Letzte Änderungen in `/etc`
+```bash
 sudo find /etc -type f -mtime -7 -ls
 
-Größte Dateien in /var (Logs, DBs):
-
+## 📦 Größte Dateien in /var
 sudo du -ah /var | sort -rh | head -n 20
 
-Offene Sockets & Prozesse (laufzeit):
-
+## ⚙️ Laufzeitüberwachung (Prozesse & Sockets)
 sudo ss -tulpen
 ps aux --sort=-%mem | head -n 20
 
-### Suche nach privaten SSH-Keys (wichtiger auf forensischen Checks):
-
+## 🔑 Suche nach privaten SSH-Keys
 sudo grep -R "BEGIN RSA PRIVATE KEY" /home /root /etc 2>/dev/null
 
-### Swap (falls vorhanden) zur Extraktion (nur mit Zustimmung und Vorsicht):
-
+## 🧠 Swap-Datei prüfen (mit Vorsicht!)
 sudo strings /swap.img | less
 
-### Kurze Hardening- & Monitoring-Reminder
+## 🧱 Hardening & Monitoring Reminder
+SSH härten:
+PasswordAuthentication no
+PermitRootLogin no (oder stark einschränken)
 
-Sichere /etc/ssh/sshd_config: PasswordAuthentication no; PermitRootLogin no (oder stark eingeschränkt).
+# Zentrale Logs:
+Remote-Syslog / SIEM zur Vermeidung lokaler Manipulation.
 
-Logs zentralisieren (z. B. remote syslog/SIEM) — verhindert lokale Manipulation.
+# Integritätsprüfung:
+Setze AIDE oder Tripwire für /boot, /etc, /usr.
 
-Setze Dateisystem-Integritätsprüfungen (AIDE, tripwire) auf /boot, /etc, /usr.
+# Rechtemanagement:
+Schreibrechte auf kritische Verzeichnisse beschränken.
+Überwache chown / chmod-Änderungen in Echtzeit.
 
-Beschränke Schreibrechte auf kritische Verzeichnisse; überwache chown/chmod-Änderungen.
+
+## 🔗 Weiterführende Tools & Referenzen
+Tool	            Beschreibung / Zweck
+Lynis             Audit & Hardening Tool
+Chkrootkit        Rootkit-Erkennung
+AIDE              Integritätsprüfer
+Sysdig / Falco    Laufzeitüberwachung
+The Sleuth Kit    Forensische Analyse
+
+
+## 🧠 Kurzfazit
+
+Für Blue-Teams: Fokus auf /etc, /var, /home, /tmp, /run – hier entstehen Spuren, hier muss Härte hin.
+
+Für Red-Teams: Fokus auf /etc/ssh, /opt, /srv, /tmp, /root – hier liegen Wege zu Persistenz und Daten.
+
+Für Admins: Änderungen an /boot, /etc, /var nur mit Backup und Doku – jede Zeile zählt!
+
+
+
+Autor: golubsource
+Lizenz: MIT
